@@ -18,12 +18,20 @@ print(f"Hostname: {fw_host}")
 
 
 
-# Read addresses from CSV into a dictionary
+# Read address groups from CSV into a dictionary
 address_groups_from_csv = {}
 with open('address_groups.csv', 'r') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-        address_groups_from_csv[row['GroupName']] = row['Addresses']
+        group_name = row['GroupName']
+        addresses = row['Addresses']
+        expanded_addresses = addresses.split(';')  # This handles multiple addresses separated by semicolons
+        
+        # If the group name already exists in the dictionary, extend the list. Otherwise, create a new entry.
+        if group_name in address_groups_from_csv:
+            address_groups_from_csv[group_name].extend(expanded_addresses)
+        else:
+            address_groups_from_csv[group_name] = expanded_addresses
 
 
 # REST API URL
@@ -57,8 +65,7 @@ for entry in root.findall(".//entry"):
         address_groups_from_panorama[group_name] = members_list
 
 # Compare and add if not exist or update existing groups
-for group_name, addresses in address_groups_from_csv.items():
-    addresses_list = addresses.split(';')
+for group_name, addresses_list in address_groups_from_csv.items():
     if group_name in address_groups_from_panorama:
         current_members = address_groups_from_panorama[group_name]
         new_members = [addr for addr in addresses_list if addr not in current_members]
@@ -96,6 +103,6 @@ for group_name, addresses in address_groups_from_csv.items():
 
         creation_response = requests.post(url, params=creation_params, verify=False)
         if "<msg>command succeeded</msg>" in creation_response.text:
-            print(f"Successfully created address group {group_name} with members {addresses} in Panorama.")
+            print(f"Successfully created address group {group_name} with members {', '.join(addresses_list)} in Panorama.")
         else:
-            print(f"Failed to create address group")
+            print(f"Failed to create address group {group_name}. Please check the API response and permissions.")
