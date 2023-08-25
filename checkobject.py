@@ -1,4 +1,3 @@
-from netaddr import IPNetwork, cidr_merge
 import requests
 import xml.etree.ElementTree as ET
 import json
@@ -48,6 +47,7 @@ url = f"https://{fw_host}/api/"
 
 # Make the API request
 response = requests.get(url, params=params, verify=False)  # Setting verify to False if you want to skip SSL verification
+print(response)
 
 # Parse the XML response
 root = ET.fromstring(response.content)
