@@ -59,7 +59,7 @@ for entry in root.findall(".//entry"):
     if ip_netmask is not None:
         addresses_from_panorama[object_name] = ip_netmask.text
 
-# Compare
+# Compare and add if not exist
 for name, address in addresses_from_csv.items():
     if name in addresses_from_panorama:
         if addresses_from_csv[name] == addresses_from_panorama[name]:
@@ -67,5 +67,19 @@ for name, address in addresses_from_csv.items():
         else:
             print(f"Name {name} exists but with a different address in Panorama!")
     else:
-        print(f"Name {name} does not exist in Panorama!")
+        print(f"Name {name} does not exist in Panorama! Creating it...")
+        # Create the address object
+        creation_params = {
+            'type': 'config',
+            'action': 'set',
+            'xpath': f"/config/shared/address/entry[@name='{name}']",
+            'element': f"<ip-netmask>{address}</ip-netmask>",
+            'key': api_key
+        }
 
+        creation_response = requests.post(url, params=creation_params, verify=False)
+
+        if "<msg>command succeeded</msg>" in creation_response.text:
+            print(f"Successfully created address {name} with IP {address} in Panorama.")
+        else:
+            print(f"Failed to create address {name}. Please check the API response and permissions.")
