@@ -28,12 +28,12 @@ You should now be inside of the docker container.
 From within the docker container run:
 	python3 grabandparse.py 
 ```
-# check_address_object.py.py vs check_object_address_group.py.py
+# check_address_object.py vs check_object_address_group.py
 ```
 The names should be self explanatory:
+Pay attention to the example csv's. 
 
-Pay attention to the example csv's. check_address_object.py.py should be formatted in the way address_objects.csv is. 
-
-check_object_address_group.py.py should be formatted in the same way address_groups.csv is. 
+check_address_object.py should be formatted in the way address_objects.csv is. 
+check_object_address_group.py should be formatted in the same way address_groups.csv is. 
 
 ```
