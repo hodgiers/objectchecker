@@ -20,7 +20,7 @@ print(f"Hostname: {fw_host}")
 
 # Read addresses from CSV into a dictionary
 addresses_from_csv = {}
-with open('shared_objects.csv', 'r') as csvfile:
+with open('address_objects.csv', 'r') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         addresses_from_csv[row['Name']] = row['Address']
