@@ -56,16 +56,34 @@ for entry in root.findall(".//entry"):
         members_list = [m.text for m in members.findall('member')]
         address_groups_from_panorama[group_name] = members_list
 
-# Compare and add if not exist
+# Compare and add if not exist or update existing groups
 for group_name, addresses in address_groups_from_csv.items():
     addresses_list = addresses.split(';')
     if group_name in address_groups_from_panorama:
-        if set(addresses_list) == set(address_groups_from_panorama[group_name]):
-            print(f"Matched: Group {group_name} with addresses {addresses}")
+        current_members = address_groups_from_panorama[group_name]
+        new_members = [addr for addr in addresses_list if addr not in current_members]
+        
+        # If there are new members to add
+        if new_members:
+            for member in new_members:
+                member_xml = f"<member>{member}</member>"
+                update_params = {
+                    'type': 'config',
+                    'action': 'set',
+                    'xpath': f"/config/shared/address-group/entry[@name='{group_name}']/static",
+                    'element': member_xml,
+                    'key': api_key
+                }
+                update_response = requests.post(url, params=update_params, verify=False)
+                if "<msg>command succeeded</msg>" in update_response.text:
+                    print(f"Successfully added {member} to address group {group_name} in Panorama.")
+                else:
+                    print(f"Failed to add {member} to address group {group_name}. Please check the API response and permissions.")
         else:
-            print(f"Group {group_name} exists but with different address members in Panorama!")
+            print(f"Address group {group_name} already has all the addresses from the CSV.")
+
     else:
-        print(f"Group {group_name} does not exist in Panorama! Creating it...")
+        print(f"Address group {group_name} does not exist in Panorama! Creating it...")
         # Create the address group
         members_xml = ''.join([f'<member>{address}</member>' for address in addresses_list])
         creation_params = {
@@ -80,4 +98,4 @@ for group_name, addresses in address_groups_from_csv.items():
         if "<msg>command succeeded</msg>" in creation_response.text:
             print(f"Successfully created address group {group_name} with members {addresses} in Panorama.")
         else:
-            print(f"Failed to create address group {group_name}. Please check the API response and permissions.")
+            print(f"Failed to create address group")
